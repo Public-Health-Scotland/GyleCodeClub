@@ -1,4 +1,4 @@
-# Resources #
+# Resources
 
 Below are links to the resources used in the 2019-06-12 meeting of the Gyle Code Club, and further reading which may be of interest:
 
