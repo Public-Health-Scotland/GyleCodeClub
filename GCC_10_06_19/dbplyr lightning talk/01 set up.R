@@ -2,6 +2,7 @@
 library(odbc)
 library(dplyr) # We only need to load dplyr
 library(magrittr)
+library(tidylog)
 
 # Create a connection to SMRA
 SMRA_connection <- odbc::dbConnect(
