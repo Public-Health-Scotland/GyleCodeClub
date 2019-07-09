@@ -26,7 +26,7 @@ simple_SMR01 <- tbl(SMRA_connection, "SMR01_PI") %>%
 
 # Do a link using dplyr joins
 # Alternative is (getting) complicated SQL
-# Or extract seperately and then join which is to be avoided!
+# Or extract separately and then join which is to be avoided!
 linked_1 <- simple_SMR01 %>% inner_join(deaths)
 
 # We could probably write some slightly better SQL but not as easily!
@@ -35,7 +35,7 @@ linked_1 %>% show_query()
 # Do the extract
 linked_1 %<>% collect()
 
-# The larger the extracts the faster this method is compared to joining seperate extracts
+# The larger the extracts the faster this method is compared to joining separate extracts
 
 # This is easily extended to multiple links, for example by including SMR04
 simple_SMR04 <- tbl(SMRA_connection, "SMR04_PI") %>%
