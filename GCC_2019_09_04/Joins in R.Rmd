@@ -1,0 +1,10 @@
+---
+title: "Joins in R"
+author: "James McMahon & Euan Caldwell"
+date: "30 August 2019"
+output: html_document
+---
+
+## Joins in R
+
+Placeholder document
