@@ -38,4 +38,3 @@ full_a <- read_csv("data/Full_Join_A.csv") %>% clean_names()
 full_b <- read_csv("data/Full_Join_B.csv") %>% clean_names()
 inner_a <- read_csv("data/Inner_Join_A.csv") %>% clean_names()
 inner_b <- read_csv("data/Inner_Join_B.csv") %>% clean_names()
-
