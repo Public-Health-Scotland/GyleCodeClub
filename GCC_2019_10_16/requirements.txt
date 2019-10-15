@@ -1,0 +1,6 @@
+python_version > "3.7"
+seaborn
+pandas
+exchangelib
+jinja2
+xlrd

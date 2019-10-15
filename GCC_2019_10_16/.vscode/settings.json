@@ -1,0 +1,15 @@
+{
+    "python.pythonPath": "C:\\Users\\germap01\\Install_Directory\\Anaconda\\envs\\alerts\\python.exe",
+    "python.linting.enabled": true,
+	"python.linting.pylintArgs": ["--max-line-length", "88", "--class-naming-style", "camelCase",
+    "--ignore-long-lines",
+    "@patch",
+    "--disable",
+    "trailing-whitespace",
+    "--disable",
+    "invalid-name",
+    "--disable",
+    "redefined-builtin"
+],
+"python.linting.pylintEnabled": true
+}
