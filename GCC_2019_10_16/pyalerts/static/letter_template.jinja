@@ -1,0 +1,76 @@
+{%
+
+set overview_url_string = "https://viz-pre-prod.nhsnss.scot.nhs.uk/#/site/Discovery/views/dev_ChiefExecsDashboard/Overview?" + "Board%20Selector=" + board|urlencode
+
+%}
+
+
+<html>
+<body>
+<font size="3" face="Arial">
+<h4>Dear {{ exec_name  }}!</h4>
+
+<div>
+The Chief Executives/Chairs Discovery dashboard has been updated to include information for {{ '{:%B %Y}'.format(refresh_date) }}: - <a href={{ overview_url_string }}>Overview dashboard</a>
+<br>
+<br>
+{{ board }} has the following indicator breaches:
+</font>
+<br>
+<br>
+</div>
+
+<div>
+{% for breach_num, breach in breaches.items() %}
+
+    {%
+    
+    set detail_url_string = "https://viz-pre-prod.nhsnss.scot.nhs.uk/#/site/Discovery/views/dev_ChiefExecsDashboard/IndicatorDetail?" + "Board%20Selector=" + board|urlencode + "&Indicator%20Selector=" + breach["indicator_id"]|urlencode
+
+    %}
+
+    <table style="width:650px; background-color: #f7f7f7; border:1px #666666 solid;">
+    <font size="4" face="Arial">
+    <tr style="padding-bottom:5px">
+        <td colspan="2">{{ breach["indicator_name"] }} for <b>{{ '{:%B %Y}'.format(breach["date"]) }}</b></td>
+    </tr>
+    </font>
+    
+    <font size="3" face="Arial">
+    <tr>
+    <td width="50%">Board Performance against target ({{ '{:.0%}'.format(breach["target"]) }})</td>
+    <td width="50%">Run Chart</td>
+    </tr>
+
+    <tr>
+    <td width="50%">{{ '{0:.2%}'.format(breach["board_rate"]) }}</td>
+    <td width="50%">Sustained deterioration</td>
+    </tr>
+
+    <tr>
+    <td width="50%"><img src="cid:temp_boxplot_{{ breach['indicator_id'] }}.png"></td>
+    <td width="50%"><img src="cid:temp_timetrend_{{ breach['indicator_id'] }}.png"></td>
+    </tr>
+   
+    <tr>
+        <td colspan="2"><a href={{ detail_url_string }}>Investigate in Discovery</a></td>
+    </tr>
+    </font>
+    </table>
+    <br>
+
+   
+{% endfor %}
+
+</div>
+<br>
+<div>
+<font size="3" face="Arial">
+Thank you,
+<br>
+Discovery team
+</div>
+</font>
+
+</body>
+</html>
