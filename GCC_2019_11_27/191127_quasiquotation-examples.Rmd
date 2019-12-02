@@ -1,0 +1,382 @@
+---
+title: "Untitled"
+author: "Lisa Hopcroft"
+date: "14 November 2019"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(knitr)
+
+```
+
+# Dynamic specification
+
+
+```{r data_creation}
+
+set.seed( 5482 )
+
+number_of_patients = 100
+
+trial_arms = c( "Control", "Drug1", "Drug2" )
+YN_categories = c( "Yes", "No" )
+
+dummy.d = tibble( 
+  patientID = sprintf( "N%03d", 1:number_of_patients ),
+  
+  arm = sample( trial_arms,
+                number_of_patients,
+                replace=TRUE),
+  
+  ### Categorical variables
+  has_had_surgery      = sample( YN_categories,
+                                 number_of_patients,
+                                 replace = TRUE ),
+  has_had_radiotherapy = sample( YN_categories,
+                                 number_of_patients,
+                                 replace = TRUE ),
+  has_had_chemotherapy = sample( YN_categories,
+                                 number_of_patients,
+                                 replace = TRUE ),
+  has_had_immunotherapy = sample( YN_categories,
+                                 number_of_patients,
+                                 replace = TRUE ),
+  
+  ### Demographics
+  age    = round( rnorm( number_of_patients, mean=60, sd=10), 0 ),
+  weight = round( rnorm( number_of_patients, mean=70, sd=15), 2 ),
+  height = round( rnorm( number_of_patients, mean=170, sd=15), 2 )
+  
+)
+
+```
+
+## Tabulating data
+
+I need to show how many patients have had surgery in each arm.
+
+```{r}
+
+has_had_surgery.table = dummy.d %>%
+  group_by( arm, has_had_surgery ) %>%
+  summarise( count=n() )
+
+has_had_surgery.table = dummy.d %>%
+  group_by( arm, has_had_surgery ) %>%
+  summarise( count=n() ) %>%
+  spread( has_had_surgery, count )
+
+```
+
+
+Now I need to show how many patients have had radiotherapy.
+What do I have to change?
+
+```{r}
+
+has_had_surgery.table = dummy.d %>%
+  group_by( arm, has_had_surgery ) %>%
+  summarise( count=n() ) %>%
+  spread( has_had_surgery, count )
+
+
+
+
+
+
+
+
+
+have_had_radiotherapy.table = dummy.d %>%
+  group_by( arm, has_had_radiotherapy ) %>%
+  summarise( count=n() ) %>%
+  spread( has_had_radiotherapy, count )
+
+```
+
+What would I have to change to show the number of patients
+that have had chemotherapy?
+
+```{r}
+
+has_had_surgery.table = dummy.d %>%
+  group_by( arm, has_had_surgery ) %>%
+  summarise( count=n() ) %>%
+  spread( has_had_surgery, count )
+
+
+
+
+
+
+
+
+
+have_had_chemotherapy.table = dummy.d %>%
+  group_by( arm, has_had_chemotherapy ) %>%
+  summarise( count=n() ) %>%
+  spread( has_had_chemotherapy, count )
+
+```
+
+
+We are coping and pasting.  And also mutliple things are the same.
+
+So, what should we do?  Make a loop.
+
+But how to we refer to things when the tidyverse uses
+'Non Standard Evaluation'?  We have to use the "quote/unquote"
+process, where *quote* means turning the text into something
+that the tidyverse will recognise and *unquote* means inserting
+the object into a tidyverse type structure.
+
+This is quote/unquote process is usually done invisibly by
+the tidyverse, but here we are cracking it open, looking under
+the hood to take advantage of the tidyverse functionality and
+use it more flexibly.
+
+There are a few ways of doing this, but let's start with 
+using the function `sym()` to *quote* and `!!` to *unquote*
+(you can call `!!` bang-bang).
+
+```{r}
+
+column_list = syms( c( "has_had_surgery",
+                       "has_had_radiotherapy",
+                       "has_had_chemotherapy" ) )
+
+for ( this_column in column_list ) {
+  
+  table_out = dummy.d %>%
+    group_by( arm, !!this_column ) %>%
+    summarise( count=n() ) %>%
+    spread( !!this_column, count )
+  
+  print( kable( table_out ) )
+}
+
+```
+
+We can also do this for plots.  Here is an example of a plot
+we might want to generate for this dataset.
+
+```{r}
+
+ggplot( dummy.d,
+        aes( x=arm, y=age )) +
+  geom_boxplot() +
+  ggtitle( "Boxplot of age across arms" )
+
+```
+
+How can I change this to do the same thing for weight and height?
+
+* *quote* the variables using `sym()`
+* *unquote* the variables when using in a tidyverse context using `!!`
+* You can interpret the `sym()` object using the `as_name()` function from the `rlang` library.
+
+```{r}
+
+column_list = syms( c( "age",
+                       "weight",
+                       "height" ) )
+
+for ( this_column in column_list ) {
+  plot_out = ggplot( dummy.d,
+          aes( x=arm, y=!!this_column )) +
+    geom_boxplot( ) +
+  ggtitle( sprintf( "Boxplot of %s across arms",
+                    rlang::as_name(this_column) ) )
+  print( plot_out )
+}
+
+```
+
+Now what we _really_ want to do is wrap this up into a function.
+
+Let's write a function.
+
+```{r}
+
+### First create the function
+draw_boxplot_for_arms = function( d,
+                                  this_column ) {
+  
+  plot_out = ggplot( d,
+          aes( x=arm, y=!!this_column )) +
+    geom_boxplot( ) +
+  ggtitle( sprintf( "Boxplot of %s across arms",
+                    rlang::as_name(this_column) ) )
+  return( plot_out )
+ 
+}
+
+
+### Then insert a call to this function where
+### we had the previous code in the loop.
+column_list.strings = syms( c( "age",
+                       "weight",
+                       "height" ) )
+
+for ( this_column in column_list.strings ) {
+  p = draw_boxplot_for_arms( d=dummy.d,
+                       =this_column )
+  print(p)
+}
+
+```
+
+Another option: quosures.  Quosures are able to handle strings, like
+`sym()`.  But they can also handle the bare column names, as you would
+provide to any normal `dplyr` or `ggplot` command.
+
+So, when in doubt, it is best to use `quo` rather than `sym`.
+
+```{r}
+
+### quo() can handle the bare variables
+draw_boxplot_for_arms( d          =dummy.d,
+                       this_column=quo(age) )
+
+### ...but it can also handle strings like sym()
+draw_boxplot_for_arms( d          =dummy.d,
+                       this_column=quo("age") )
+
+
+### We can use the same function as we defined above
+### as we can use the !! operator in the same way.
+column_list.quosures = quos( age,
+                             weight,
+                             height )
+
+for ( this_column in column_list.quosures ) {
+  p = draw_boxplot_for_arms( d=dummy.d,
+                             this_column=this_column )
+  print(p)
+}
+
+```
+
+In the previous example, we were passing a quosure to the function.
+We could also convert to the required quosure within the function.
+For this, we need to use the `enquo()` function.
+
+NB. Plural forms:
+sym -> syms
+quo -> quos
+enquo -> enquos
+
+Note: I don't know why quo doesn't work within a function.
+
+```{r}
+
+
+draw_boxplot_for_arms_enquo = function( d,
+                                        this_column ) {
+  
+  plot_out = ggplot( d,
+          aes( x=arm, y=!!enquo(this_column) )) +
+    geom_boxplot( ) +
+  ggtitle( sprintf( "Boxplot of %s across arms",
+                    rlang::as_name(enquo(this_column)) ) )
+  return( plot_out )
+ 
+}
+
+draw_boxplot_for_arms_enquo( d          =dummy.d,
+                             this_column=age)
+
+
+
+```
+
+So, up until now, we have been converting our column name into an
+object that the tidyeval understands (using either `sym()` or `quo()`
+depending on whether you are starting with a string or bare
+representation of your column name respectively) and then using the
+`!!` to integrate that into some tidyverse code (`ggplot()` or
+`dplyr` functions).
+
+In the `rlang` package v0.4.0 and above, you can do the quote
+and the unquote *at the same time* (in one 'interpolation' step),
+using the "curly curly" or "superstache" operator.
+
+```{r}
+
+draw_boxplot_for_arms_curlycurly = function( d,
+                                             this_column ) {
+  
+  plot_out = ggplot( d,
+          aes( x=arm, y={{this_column}} )) +
+    geom_boxplot( ) +
+  ggtitle( sprintf( "Boxplot of %s across arms",
+                    rlang::as_name(enquo(this_column)))  )
+  
+  return( plot_out )
+ 
+}
+
+draw_boxplot_for_arms_curlycurly( d=dummy.d,
+                                  this_column=age )
+
+
+```
+
+One last thing: what if I want to add a new column and the name of that
+column is tied up inside a variable?
+
+```{r}
+
+### Doing this with bare variable names
+dummy.target.d_bare = dummy.d %>%
+  mutate( chemo_but_no_radio =
+            ( has_had_chemotherapy == "Yes" & 
+            has_had_radiotherapy == "No" ) )
+nrow( dummy.target.d_bare )
+dummy.target.d_bare %>% colnames
+
+### What if the new column name is saved
+### as a string in a variable?
+
+new_variable = "chemo_but_no_radio"
+
+dummy.target.d_byVar1 = dummy.d %>%
+  mutate( !!sym(new_variable) := ( has_had_chemotherapy  == "Yes" & has_had_radiotherapy == "No" ) )
+
+dummy.target.d_byVar2a = dummy.d %>%
+  mutate( !!quo(new_variable) := ( has_had_chemotherapy  == "Yes" & has_had_radiotherapy == "No" ) )
+
+dummy.target.d_byVar2b = dummy.d %>%
+  mutate( !!enquo(new_variable) := ( has_had_chemotherapy  == "Yes" & has_had_radiotherapy == "No" ) )
+
+dummy.target.d_byVar3 = dummy.d %>%
+  mutate( {{new_variable}} := ( has_had_chemotherapy  == "Yes" & has_had_radiotherapy == "No" ) )
+
+new_variable %in% ( dummy.target.d_byVar1  %>% colnames )
+new_variable %in% ( dummy.target.d_byVar2a %>% colnames )
+new_variable %in% ( dummy.target.d_byVar2b %>% colnames )
+new_variable %in% ( dummy.target.d_byVar3  %>% colnames )
+
+```
+
+
+Useful references for more reading:
+
+* https://dplyr.tidyverse.org/articles/programming.html
+* https://tidyeval.tidyverse.org/sec-why-how.html
+* https://edwinth.github.io/blog/dplyr-recipes/
+* https://www.tidyverse.org/blog/2019/06/rlang-0-4-0/
+* https://stackoverflow.com/questions/56936372/curly-curly-tidy-evaluation-and-modifying-inputs-or-their-names
+* https://www.tidyverse.org/blog/2018/07/ggplot2-tidy-evaluation/
+* https://rlang.r-lib.org/reference/quasiquotation.html
+
+For more information and to really understand how this works, see:
+
+https://adv-r.hadley.nz/quasiquotation.html
+
+
+
+
