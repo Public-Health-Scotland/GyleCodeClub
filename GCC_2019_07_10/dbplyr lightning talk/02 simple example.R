@@ -21,7 +21,7 @@ simple_2 %>% show_query()
 
 # Up until this point we haven't actually got the data
 tic()
-simple_2 %<>% collect()
+simple_2 <- collect(simple_2)
 toc()
 
 # Let's make sure the extracts are really identical

@@ -7,7 +7,6 @@ install.packages("dbplyr") # Needs to be installed
 #  Load Libraries
 library(odbc)
 library(dplyr) # We only need to load dplyr (not dbplyr)
-library(magrittr)
 
 # Create a connection to SMRA
 SMRA_connection <- odbc::dbConnect(

@@ -33,7 +33,7 @@ linked_1 <- simple_SMR01 %>% inner_join(deaths)
 linked_1 %>% show_query()
 
 # Do the extract
-linked_1 %<>% collect()
+linked_1 <- collect(linked_1)
 
 # The larger the extracts the faster this method is compared to joining separate extracts
 
