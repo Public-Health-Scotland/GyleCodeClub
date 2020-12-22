@@ -16,4 +16,3 @@ SMRA_connection <- odbc::dbConnect(
   pwd = rstudioapi::askForPassword("SMRA Password:"),
   encoding = "ASCII"
 )
-
